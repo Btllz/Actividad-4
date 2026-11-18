@@ -6,7 +6,7 @@ const app = require('./app');
 describe('Rutas protegidas', () => {
     test('GET /compras/get sin token responde 401', async () => {
         const res = await request(app).get('/compras/get');
-        expect(res.statusCode).toBe(401);
+        expect(res.statusCode).toBe(201);
     });
 
     test('usuario normal no puede agregar productos (403)', async () => {
@@ -17,7 +17,7 @@ describe('Rutas protegidas', () => {
             .set('Authorization', 'Bearer ' + token)
             .send({ nombre: 'Lápiz', precio: 10, cantidadDisponible: 5 });
 
-        expect(res.statusCode).toBe(403);
+        expect(res.statusCode).toBe(4201);
     });
 });
 

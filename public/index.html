@@ -20,7 +20,7 @@
             <button type="submit">Continuar</button>
             <button type="button" id="irRegistro">No tengo cuenta</button>
         </form>
-    </div>
+    </div> 
 
     <div id="seccionRegistro" class="oculto">
         <form id="registroForm">
@@ -54,7 +54,7 @@
     const listaProductos = document.getElementById('listaProductos');
     let temporizador;
 
-    // ---------- Utilidades ----------
+//--------------------------------------------------------------- UTILIDADES Y FUNCIONES ------------------------------------------------------
     function mostrarMensaje(texto) {
         clearTimeout(temporizador);
         mensaje.textContent = texto;
@@ -103,7 +103,7 @@
         mostrarMensaje('Tu sesión expiró, inicia sesión de nuevo');
     }
 
-    // ---------- Productos ----------
+//---------------------------------------------------------------VER PRODUCTOS--------------------------------------------------------
     async function verProductos() {
         const respuesta = await fetch('/compras/get', { headers: authHeaders() });
 
@@ -153,7 +153,7 @@
         });
     }
 
-    // ---------- Eventos ----------
+//------------------------------------------------------------LOGIN FORM---------------------------------------------
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const correo = document.getElementById('correoCampo').value;
@@ -172,7 +172,7 @@
         e.target.reset();
         entrarALaApp();
     });
-
+//---------------------------------------------------------------REGISTRO FORM-------------------------------------------------------
     document.getElementById('registroForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const correo = document.getElementById('correoCampoRegistro').value;
@@ -191,7 +191,7 @@
         mostrar('seccionLogin');
         mostrarMensaje('Cuenta creada, ya puedes iniciar sesión');
     });
-
+//-----------------------------------------------------------------------SECCION AGREGAR---------------------------------------------
     document.getElementById('nuevoProducto').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nombre = document.getElementById('productoNombre').value;
@@ -221,7 +221,7 @@
         mostrar('seccionLogin');
     });
 
-    // ---------- Inicio ----------
+    //---------------------------------------------------------------INICIO DE APLICACION---------------------------------------
     if (localStorage.getItem('token')) {
         entrarALaApp();
     } else {
