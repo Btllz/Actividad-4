@@ -1,0 +1,194 @@
+/* ---------- Base ---------- */
+:root {
+    --color-primario: #4f46e5;
+    --color-primario-oscuro: #4338ca;
+    --color-peligro: #dc2626;
+    --color-peligro-oscuro: #b91c1c;
+    --color-fondo: #f3f4f6;
+    --color-tarjeta: #ffffff;
+    --color-texto: #1f2937;
+    --color-borde: #d1d5db;
+    --radio: 10px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 24px 16px;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: var(--color-fondo);
+    color: var(--color-texto);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+/* ---------- Mensaje de error / aviso ---------- */
+#errorMensaje {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 12px 20px;
+    background: var(--color-peligro);
+    color: #fff;
+    border-radius: var(--radio);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    max-width: 90%;
+    text-align: center;
+}
+
+/* ---------- Tarjetas (secciones) ---------- */
+#seccionLogin,
+#seccionRegistro,
+#seccionAgregar,
+#seccionVer {
+    width: 100%;
+    max-width: 480px;
+    background: var(--color-tarjeta);
+    padding: 24px;
+    border-radius: var(--radio);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+#seccionVer {
+    max-width: 640px;
+}
+
+h1, h2 {
+    margin: 0 0 16px;
+    text-align: center;
+}
+
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.3rem; }
+
+/* ---------- Formularios ---------- */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 1rem;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* ---------- Botones ---------- */
+button {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--color-primario);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background: var(--color-primario-oscuro);
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Botones secundarios (cambiar entre login y registro) */
+#irRegistro,
+#irInicioSesion,
+#actualizarProductos {
+    background: transparent;
+    color: var(--color-primario);
+    border: 1px solid var(--color-primario);
+}
+
+#irRegistro:hover,
+#irInicioSesion:hover,
+#actualizarProductos:hover {
+    background: rgba(79, 70, 229, 0.08);
+}
+
+#cerrarSesion {
+    background: var(--color-peligro);
+}
+
+#cerrarSesion:hover {
+    background: var(--color-peligro-oscuro);
+}
+
+/* ---------- Lista de productos ---------- */
+#seccionVer > button {
+    margin: 0 8px 16px 0;
+}
+
+#listaProductos {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#listaProductos li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+#listaProductos li button {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+/* Botón "Borrar" en rojo (es el segundo botón de cada producto) */
+#listaProductos li button:nth-of-type(2) {
+    background: var(--color-peligro);
+}
+
+#listaProductos li button:nth-of-type(2):hover {
+    background: var(--color-peligro-oscuro);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 480px) {
+    body {
+        padding: 12px 8px;
+    }
+
+    #seccionLogin,
+    #seccionRegistro,
+    #seccionAgregar,
+    #seccionVer {
+        padding: 16px;
+    }
+}

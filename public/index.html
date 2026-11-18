@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Actividad 4</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .oculto { display: none; }
+    </style>
+</head>
+
+<body>
+    <p id="errorMensaje" class="oculto"></p>
+
+    <div id="seccionLogin" class="oculto">
+        <form id="loginForm">
+            <h1>Iniciar Sesión</h1>
+            <input id="correoCampo" type="email" placeholder="correo@correo.com" required>
+            <input id="passwordCampo" type="password" placeholder="contraseña" required>
+            <button type="submit">Continuar</button>
+            <button type="button" id="irRegistro">No tengo cuenta</button>
+        </form>
+    </div>
+
+    <div id="seccionRegistro" class="oculto">
+        <form id="registroForm">
+            <h1>Registro</h1>
+            <input id="correoCampoRegistro" type="email" placeholder="correo@correo.com" required>
+            <input id="passwordCampoRegistro" type="password" placeholder="contraseña" required>
+            <button type="submit">Continuar</button>
+            <button type="button" id="irInicioSesion">Ya tengo cuenta</button>
+        </form>
+    </div>
+
+    <div id="seccionAgregar" class="oculto">
+        <h2>Agregar producto</h2>
+        <form id="nuevoProducto">
+            <input type="text" id="productoNombre" placeholder="Producto" required>
+            <input type="number" id="precio" placeholder="Precio" min="0" step="any" required>
+            <input type="number" id="cantidadDisponible" placeholder="Cantidad disponible" min="0" required>
+            <button type="submit">Guardar</button>
+        </form>
+    </div>
+
+    <div id="seccionVer" class="oculto">
+        <h2>Lista de Productos</h2>
+        <button type="button" id="actualizarProductos">Actualizar productos</button>
+        <button type="button" id="cerrarSesion">Cerrar sesión</button>
+        <ul id="listaProductos"></ul>
+    </div>
+
+<script>
+    const mensaje = document.getElementById('errorMensaje');
+    const listaProductos = document.getElementById('listaProductos');
+    let temporizador;
+
+    // ---------- Utilidades ----------
+    function mostrarMensaje(texto) {
+        clearTimeout(temporizador);
+        mensaje.textContent = texto;
+        mensaje.classList.remove('oculto');
+        temporizador = setTimeout(() => mensaje.classList.add('oculto'), 4000);
+    }
+
+    function mostrar(...ids) {
+        ['seccionLogin', 'seccionRegistro', 'seccionAgregar', 'seccionVer']
+            .forEach(id => document.getElementById(id).classList.add('oculto'));
+        ids.forEach(id => document.getElementById(id).classList.remove('oculto'));
+    }
+
+    function obtenerRol() {
+        try {
+            const token = localStorage.getItem('token');
+            const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(atob(payload)).rol;
+        } catch {
+            return null;
+        }
+    }
+
+    function textoError(datos) {
+        return datos.error || datos.mensaje || 'Ocurrió un error';
+    }
+
+    function authHeaders(conJson = false) {
+        const headers = { 'Authorization': 'Bearer ' + localStorage.getItem('token') };
+        if (conJson) headers['Content-Type'] = 'application/json';
+        return headers;
+    }
+
+    function entrarALaApp() {
+        if (obtenerRol() === 'admin') {
+            mostrar('seccionVer', 'seccionAgregar');
+        } else {
+            mostrar('seccionVer');
+        }
+        verProductos();
+    }
+
+    function sesionExpirada() {
+        localStorage.removeItem('token');
+        mostrar('seccionLogin');
+        mostrarMensaje('Tu sesión expiró, inicia sesión de nuevo');
+    }
+
+    // ---------- Productos ----------
+    async function verProductos() {
+        const respuesta = await fetch('/compras/get', { headers: authHeaders() });
+
+        if (respuesta.status === 401) return sesionExpirada();
+
+        const datos = await respuesta.json();
+        if (!respuesta.ok) return mostrarMensaje(textoError(datos));
+
+        const esAdmin = obtenerRol() === 'admin';
+        listaProductos.innerHTML = '';
+
+        datos.productos.forEach(p => {
+            const li = document.createElement('li');
+            li.textContent = `${p.nombre} | Precio: $${p.precio} | Disponibles: ${p.cantidadDisponible} `;
+
+            const btnComprar = document.createElement('button');
+            btnComprar.textContent = 'Comprar';
+            btnComprar.disabled = p.cantidadDisponible === 0;
+            btnComprar.addEventListener('click', async () => {
+                const res = await fetch('/compras/comprar/' + p._id, {
+                    method: 'POST',
+                    headers: authHeaders()
+                });
+                if (res.status === 401) return sesionExpirada();
+                const d = await res.json();
+                if (!res.ok) mostrarMensaje(textoError(d));
+                verProductos();
+            });
+            li.append(btnComprar);
+
+            if (esAdmin) {
+                const btnBorrar = document.createElement('button');
+                btnBorrar.textContent = 'Borrar';
+                btnBorrar.addEventListener('click', async () => {
+                    const res = await fetch('/compras/delete/' + p._id, {
+                        method: 'DELETE',
+                        headers: authHeaders()
+                    });
+                    if (res.status === 401) return sesionExpirada();
+                    if (!res.ok) mostrarMensaje(textoError(await res.json()));
+                    verProductos();
+                });
+                li.append(btnBorrar);
+            }
+
+            listaProductos.append(li);
+        });
+    }
+
+    // ---------- Eventos ----------
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const correo = document.getElementById('correoCampo').value;
+        const password = document.getElementById('passwordCampo').value;
+
+        const respuesta = await fetch('/compras/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo, password })
+        });
+        const datos = await respuesta.json();
+
+        if (!respuesta.ok) return mostrarMensaje(textoError(datos));
+
+        localStorage.setItem('token', datos.token);
+        e.target.reset();
+        entrarALaApp();
+    });
+
+    document.getElementById('registroForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const correo = document.getElementById('correoCampoRegistro').value;
+        const password = document.getElementById('passwordCampoRegistro').value;
+
+        const respuesta = await fetch('/compras/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo, password })
+        });
+        const datos = await respuesta.json();
+
+        if (!respuesta.ok) return mostrarMensaje(textoError(datos));
+
+        e.target.reset();
+        mostrar('seccionLogin');
+        mostrarMensaje('Cuenta creada, ya puedes iniciar sesión');
+    });
+
+    document.getElementById('nuevoProducto').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nombre = document.getElementById('productoNombre').value;
+        const precio = Number(document.getElementById('precio').value);
+        const cantidadDisponible = Number(document.getElementById('cantidadDisponible').value);
+
+        const respuesta = await fetch('/compras/add', {
+            method: 'POST',
+            headers: authHeaders(true),
+            body: JSON.stringify({ nombre, precio, cantidadDisponible })
+        });
+
+        if (respuesta.status === 401) return sesionExpirada();
+
+        const datos = await respuesta.json();
+        if (!respuesta.ok) return mostrarMensaje(textoError(datos));
+
+        e.target.reset();
+        verProductos();
+    });
+
+    document.getElementById('actualizarProductos').addEventListener('click', verProductos);
+    document.getElementById('irRegistro').addEventListener('click', () => mostrar('seccionRegistro'));
+    document.getElementById('irInicioSesion').addEventListener('click', () => mostrar('seccionLogin'));
+    document.getElementById('cerrarSesion').addEventListener('click', () => {
+        localStorage.removeItem('token');
+        mostrar('seccionLogin');
+    });
+
+    // ---------- Inicio ----------
+    if (localStorage.getItem('token')) {
+        entrarALaApp();
+    } else {
+        mostrar('seccionLogin');
+    }
+</script>
+</body>
+</html>
